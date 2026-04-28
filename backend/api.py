@@ -1,14 +1,35 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
-from tensorflow.keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.layers import LSTM
+
+# =========================
+# LSTM COMPATIBILITY PATCH
+# =========================
+class CompatibleLSTM(LSTM):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('time_major', None)
+        super().__init__(*args, **kwargs)
 
 # =========================
 # LOAD MODEL
 # =========================
-model = load_model("parkinson_model.h5")
+model = tf.keras.models.load_model(
+    "parkinson_model.h5",
+    custom_objects={'LSTM': CompatibleLSTM},
+    compile=False
+)
 
 app = FastAPI(title="Parkinson Detection API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # =========================
 # REQUEST FORMAT
@@ -21,25 +42,17 @@ class PredictionInput(BaseModel):
 # =========================
 @app.post("/predict")
 def predict(data: PredictionInput):
-
     try:
-        # Convert input to numpy
         sequence = np.array(data.sequence)
-
-        # Ensure correct shape
         sequence = sequence.reshape(1, 30, 1404)
-
-        # Prediction
         prediction = model.predict(sequence, verbose=0)
 
         healthy_prob = float(prediction[0][0]) * 100
         parkinson_prob = float(prediction[0][1]) * 100
 
         diagnosis = "Parkinson" if parkinson_prob > healthy_prob else "Healthy"
-
         severity = parkinson_prob if diagnosis == "Parkinson" else (100 - healthy_prob)
 
-        # Stage estimation
         if severity < 40:
             stage = "Mild"
         elif severity < 70:
