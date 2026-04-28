@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ParkinScan — Parkinson Detection</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <!--this downloads the jsPDF library so we can make pdf of the result-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <style>
     /* ================================
        RESET & BASE
@@ -428,7 +432,7 @@
     .test-body {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 340px;
       gap: 0;
     }
 
@@ -596,46 +600,17 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      width: 340px;
+      flex-shrink: 0;
     }
-    .expression-emoji {
-      font-size: 4rem;
-      margin-bottom: 0.8rem;
-      display: block;
-    }
-    .expression-name {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.8rem;
-      color: white;
-      margin-bottom: 0.6rem;
-      letter-spacing: -0.02em;
-    }
+    
     .expression-desc {
       font-size: 0.88rem;
       color: #94a3b8;
       line-height: 1.6;
       margin-bottom: 2rem;
     }
-    .expression-tips h4 {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--teal);
-      margin-bottom: 0.8rem;
-    }
-    .tip-item {
-      display: flex; align-items: flex-start; gap: 0.6rem;
-      margin-bottom: 0.6rem;
-    }
-    .tip-dot {
-      width: 6px; height: 6px;
-      background: var(--teal);
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 0.4rem;
-    }
-    .tip-item p { font-size: 0.82rem; color: #64748b; line-height: 1.5; }
-
+    
     /* All expressions list */
     .all-expressions {
       border-top: 1px solid rgba(255,255,255,0.06);
@@ -1173,6 +1148,11 @@
   <div class="test-body">
     <!-- VIDEO SIDE -->
     <div class="video-side">
+      <div style="text-align:center;">
+        <span id="expr-emoji-top" style="font-size:2.5rem;">😐</span>
+        <h3 id="expr-name-top" style="color:white; font-family:'DM Serif Display',serif; font-size:1.4rem; margin-top:0.3rem;">Neutral Face</h3>
+        <p class="expression-desc" id="expr-desc">Relax your face completely. Look straight at the camera with a neutral, resting expression. Keep your head still.</p>
+      </div>
       <div class="video-wrap">
         <div class="camera-placeholder" id="camera-placeholder">
           <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -1197,6 +1177,10 @@
             <div class="countdown-num" id="countdown-num">5</div>
           </div>
         </div>
+        <div id="get-ready-overlay" style="display:none; position:absolute; inset:0; background:rgba(15,23,42,0.75); align-items:center; justify-content:center; flex-direction:column; gap:0.5rem; border-radius:20px;">
+          <p style="color:#94a3b8; font-size:0.85rem; letter-spacing:0.08em; text-transform:uppercase;">Get Ready</p>
+          <span id="get-ready-num" style="font-family:'DM Serif Display',serif; font-size:5rem; color:white; line-height:1;">3</span>
+        </div>
       </div>
 
       <div class="video-actions">
@@ -1217,27 +1201,6 @@
 
     <!-- INSTRUCTION SIDE -->
     <div class="instruction-side">
-      <div>
-        <span class="expression-emoji" id="expr-emoji">😐</span>
-        <h2 class="expression-name" id="expr-name">Neutral Face</h2>
-        <p class="expression-desc" id="expr-desc">Relax your face completely. Look straight at the camera with a neutral, resting expression. Keep your head still.</p>
-        <div class="expression-tips">
-          <h4>Tips</h4>
-          <div class="tip-item">
-            <div class="tip-dot"></div>
-            <p>Position your face fully in the camera frame</p>
-          </div>
-          <div class="tip-item">
-            <div class="tip-dot"></div>
-            <p>Make sure you have good lighting on your face</p>
-          </div>
-          <div class="tip-item">
-            <div class="tip-dot"></div>
-            <p>Hold the expression for the full 5 seconds</p>
-          </div>
-        </div>
-      </div>
-
       <div class="all-expressions">
         <h4>All Expressions</h4>
         <div class="expr-list" id="expr-list">
@@ -1253,7 +1216,7 @@
 ================================ -->
 <div class="screen" id="screen-results">
   <nav class="results-nav">
-    <div class="results-logo">Parkin<span>Scan</span></div>
+    <div class="results-logo" onclick="showScreen('home')" style="cursor:pointer;">Parkin<span>Scan</span></div>
     <button class="btn-secondary" onclick="showScreen('home')" style="font-size:0.82rem; padding:0.55rem 1.2rem;">
       ← Back to Home
     </button>
@@ -1308,7 +1271,7 @@
       <button class="btn-secondary" onclick="startTest()">
         Test Again
       </button>
-      <button class="btn-primary" onclick="window.print()">
+      <button class="btn-primary" onclick="downloadPDF()">
         Save Results
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
@@ -1333,17 +1296,43 @@
   // EXPRESSIONS DATA
   // ==================
   const EXPRESSIONS = [
-    { emoji: '😐', name: 'Neutral Face',    desc: 'Relax your face completely. Look straight at the camera with a neutral, resting expression. Keep your head still.' },
-    { emoji: '😊', name: 'Happiness',       desc: 'Give a natural, genuine smile. Try to involve your eyes as well as your mouth in the expression.' },
-    { emoji: '😢', name: 'Sadness',         desc: 'Let your face drop into a sad expression. Allow the corners of your mouth to turn downward naturally.' },
-    { emoji: '😠', name: 'Anger',           desc: 'Frown and furrow your brows as if something has made you angry. Tighten your jaw slightly.' },
-    { emoji: '😲', name: 'Surprise',        desc: 'Raise your eyebrows and open your eyes and mouth wide, as if you just saw something shocking.' },
-    { emoji: '😖', name: 'Disgust',         desc: 'Wrinkle your nose and slightly curl your upper lip, as if you encountered an unpleasant smell or sight.' },
+    { emoji: '😐', name: 'Neutral Face',    desc: 'For 5 seconds relax your face completely. Look straight at the camera with a neutral, resting expression. Keep your head still.' },
+    { emoji: '😊', name: 'Happiness',       desc: 'For 5 seconds give a natural, genuine smile. Try to involve your eyes as well as your mouth in the expression.' },
+    { emoji: '😢', name: 'Sadness',         desc: 'For 5 seconds let your face drop into a sad expression. Allow the corners of your mouth to turn downward naturally.' },
+    { emoji: '😠', name: 'Anger',           desc: 'For 5 seconds frown and furrow your brows as if something has made you angry. Tighten your jaw slightly.' },
+    { emoji: '😲', name: 'Surprise',        desc: 'For 5 seconds raise your eyebrows and open your eyes and mouth wide, as if you just saw something shocking.' },
+    { emoji: '😖', name: 'Disgust',         desc: 'For 5 seconds wrinkle your nose and slightly curl your upper lip, as if you encountered an unpleasant smell or sight.' },
   ];
 
   const TIME_PER_EXPRESSION = 5; // seconds
   const FRAMES_PER_EXPRESSION = 5; // 6 expressions × 5 = 30 frames
 
+// ==================
+// MEDIAPIPE SETUP
+// ==================
+let faceMesh = null;
+let latestLandmarks = null;
+
+function initFaceMesh() {
+  faceMesh = new FaceMesh({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+  });
+
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  faceMesh.onResults((results) => {
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      latestLandmarks = results.multiFaceLandmarks[0];
+    } else {
+      latestLandmarks = null;
+    }
+  });
+}
   // ==================
   // STATE
   // ==================
@@ -1386,17 +1375,26 @@
     buildExpressionList();
     updateStep();
     await initCamera();
-    startRecording();
+    startGetReady();
   }
 
   // ==================
   // CAMERA INIT
   // ==================
   async function initCamera() {
+    initFaceMesh();
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
       const video = document.getElementById('camera-feed');
       video.srcObject = stream;
+      const camera = new Camera(video, {
+        onFrame: async () => {
+          await faceMesh.send({ image: video });
+        },
+        width: 640,
+        height: 480
+      });
+      camera.start();
       video.style.display = 'block';
       document.getElementById('camera-placeholder').style.display = 'none';
     } catch (err) {
@@ -1428,8 +1426,8 @@
   // ==================
   function updateStep() {
     const expr = EXPRESSIONS[currentStep];
-    document.getElementById('expr-emoji').textContent = expr.emoji;
-    document.getElementById('expr-name').textContent = expr.name;
+    document.getElementById('expr-emoji-top').textContent = expr.emoji;
+    document.getElementById('expr-name-top').textContent = expr.name;
     document.getElementById('expr-desc').textContent = expr.desc;
 
     const pct = ((currentStep) / EXPRESSIONS.length) * 100;
@@ -1453,6 +1451,29 @@
   // ==================
   // RECORDING
   // ==================
+  function startGetReady() {
+  document.getElementById('btn-next').disabled = true;
+  document.getElementById('btn-record-again').disabled = true;
+
+  const overlay = document.getElementById('get-ready-overlay');
+  const num = document.getElementById('get-ready-num');
+
+  overlay.style.display = 'flex';
+  let count = 3;
+  num.textContent = count;
+
+  const interval = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(interval);
+      overlay.style.display = 'none';
+      startRecording();
+    } else {
+      num.textContent = count;
+    }
+  }, 1000);
+  }
+
   function startRecording() {
     isRecording = true;
     currentExpressionFrames = [];
@@ -1489,11 +1510,13 @@
   }
 
   function captureFrame() {
-    const video = document.getElementById('camera-feed');
-    if (!video || video.readyState < 2) return;
-    // Store timestamp — in a real MediaPipe integration, 
-    // this would capture landmark coordinates instead
-    currentExpressionFrames.push({ timestamp: Date.now() });
+    if (!latestLandmarks) return;
+
+    const frame = [];
+    for (const lm of latestLandmarks) {
+      frame.push(lm.x, lm.y, lm.z);
+    }
+    currentExpressionFrames.push(frame);
   }
 
   function finishRecording() {
@@ -1514,7 +1537,7 @@
     clearInterval(countdownInterval);
     clearInterval(frameInterval);
     currentExpressionFrames = [];
-    startRecording();
+    startGetReady();
   }
 
   // ==================
@@ -1538,7 +1561,7 @@
       sendToAPI();
     } else {
       updateStep();
-      startRecording();
+      startGetReady();
     }
   }
 
@@ -1550,7 +1573,7 @@
 
     // Build a 30×1404 sequence of zeros as placeholder
     // In the full MediaPipe integration, this will be real landmark data
-    const sequence = Array.from({ length: 30 }, () => Array(1404).fill(0));
+    const sequence = collectedFrames;
 
     try {
       const response = await fetch('http://127.0.0.1:8000/predict', {
@@ -1637,6 +1660,47 @@
         document.getElementById('dot-severe').classList.add('severe');
       }
     }
+  }
+  function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const diagnosis = document.getElementById('result-title').textContent;
+  const healthyPct = document.getElementById('healthy-pct').textContent;
+  const parkinsonPct = document.getElementById('parkinson-pct').textContent;
+  const severity = document.getElementById('severity-val').textContent;
+  const date = new Date().toLocaleDateString();
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('ParkinScan — Test Results', 20, 25);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text('Date: ' + date, 20, 38);
+
+  doc.setDrawColor(13, 148, 136);
+  doc.setLineWidth(0.5);
+  doc.line(20, 44, 190, 44);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('Diagnosis: ' + diagnosis, 20, 58);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.text('Healthy Probability:     ' + healthyPct, 20, 75);
+  doc.text('Parkinson Probability:  ' + parkinsonPct, 20, 88);
+  doc.text('Severity Level:              ' + severity, 20, 101);
+
+  doc.line(20, 110, 190, 110);
+
+  doc.setFontSize(9);
+  doc.setTextColor(150);
+  doc.text('This is not a medical diagnosis. ParkinScan is a research prototype.', 20, 122);
+  doc.text('Consult a qualified neurologist for any health concerns.', 20, 130);
+
+  doc.save('parkinscan-results.pdf');
   }
 </script>
 
