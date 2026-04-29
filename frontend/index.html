@@ -1637,12 +1637,13 @@ function initFaceMesh() {
   // SHOW RESULTS
   // ==================
   function showResults(data) {
-    showScreen('results');
-
-    if (data.error) {
-      alert('API error: ' + data.error);
+    // Guard: if no data, redirect home
+    if (!data || data.error) {
+      if (data && data.error) alert('API error: ' + data.error);
+      showScreen('home');
       return;
     }
+    showScreen('results');
 
     const isParkinson = data.diagnosis === 'Parkinson';
     const banner = document.getElementById('result-banner');
