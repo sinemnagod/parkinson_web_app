@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ParkinScan — Parkinson Detection</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230f172a'/><ellipse cx='16' cy='17' rx='9' ry='11' fill='none' stroke='%230d9488' stroke-width='1.2' opacity='0.8'/><ellipse cx='12' cy='13' rx='2.5' ry='1.5' fill='none' stroke='%230d9488' stroke-width='1'/><ellipse cx='20' cy='13' rx='2.5' ry='1.5' fill='none' stroke='%230d9488' stroke-width='1'/><circle cx='12' cy='13' r='1' fill='%230d9488' opacity='0.8'/><circle cx='20' cy='13' r='1' fill='%230d9488' opacity='0.8'/><path d='M13 20 Q16 22 19 20' stroke='%230d9488' stroke-width='1' fill='none' stroke-linecap='round'/><circle cx='16' cy='6' r='1' fill='%230d9488' opacity='0.6'/><circle cx='7' cy='17' r='1' fill='%230d9488' opacity='0.5'/><circle cx='25' cy='17' r='1' fill='%230d9488' opacity='0.5'/><circle cx='16' cy='28' r='1' fill='%230d9488' opacity='0.5'/><line x1='4' y1='13' x2='7' y2='13' stroke='%230d9488' stroke-width='1' opacity='0.6'/><line x1='25' y1='13' x2='28' y2='13' stroke='%230d9488' stroke-width='1' opacity='0.6'/><line x1='4' y1='20' x2='7' y2='20' stroke='%230d9488' stroke-width='1' opacity='0.6'/><line x1='25' y1='20' x2='28' y2='20' stroke='%230d9488' stroke-width='1' opacity='0.6'/></svg>">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <!--this downloads the jsPDF library so we can make pdf of the result-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js"></script>
   <style>
     /* ================================
        RESET & BASE
@@ -918,6 +919,10 @@
 <div class="screen active" id="screen-home">
   <nav class="nav">
     <div class="nav-logo">Parkin<span>Scan</span></div>
+    <div style="display:flex; align-items:center; gap:2rem;">
+      <a onclick="document.getElementById('about-section').scrollIntoView({behavior:'smooth'})" style="font-size:0.88rem; color:var(--muted); cursor:pointer; text-decoration:none; font-weight:500; transition:color 0.2s;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">What is Parkinson's?</a>
+      <a onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})" style="font-size:0.88rem; color:var(--muted); cursor:pointer; text-decoration:none; font-weight:500; transition:color 0.2s;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">How It Works</a>
+    </div>
   </nav>
 
   <!-- HERO -->
@@ -1039,7 +1044,7 @@
   </div>
 
   <!-- ABOUT PARKINSONS -->
-  <section class="info-section">
+  <section class="info-section" id="about-section">
     <p class="section-label">About the disease</p>
     <h2 class="section-title">What is Parkinson's Disease?</h2>
     <p class="section-sub">Parkinson's disease is a progressive neurological disorder that affects movement and muscle control — including the muscles that control facial expressions.</p>
@@ -1078,7 +1083,7 @@
   </section>
 
   <!-- HOW IT WORKS -->
-  <section class="how-section">
+  <section class="how-section" id="how-section">
     <div class="how-inner">
       <p class="section-label">How it works</p>
       <h2 class="section-title">Four steps to your result</h2>
@@ -1166,6 +1171,21 @@
           <div class="corner corner-tr"></div>
           <div class="corner corner-bl"></div>
           <div class="corner corner-br"></div>
+          <svg style="position:absolute; inset:0; width:100%; height:100%;" viewBox="0 0 560 420" preserveAspectRatio="none">
+            <ellipse
+              cx="280"
+              cy="210"
+              rx="110"
+              ry="150"
+              fill="none"
+              stroke="rgba(13,148,136,0.6)"
+              stroke-width="2"
+              stroke-dasharray="8 4"
+            />
+          </svg>
+          <div id="no-face-warning" style="display:none; position:absolute; bottom:60px; left:50%; transform:translateX(-50%); background:rgba(239,68,68,0.9); color:white; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; padding:0.5rem 1.2rem; border-radius:100px; white-space:nowrap;">
+            ⚠️ No face detected — adjust your position
+          </div>
           <div class="rec-badge" id="rec-badge" style="display:none;">
             <div class="rec-dot"></div> REC
           </div>
@@ -1315,7 +1335,7 @@ let latestLandmarks = null;
 
 function initFaceMesh() {
   faceMesh = new FaceMesh({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
   });
 
   faceMesh.setOptions({
@@ -1366,11 +1386,11 @@ function initFaceMesh() {
   // ==================
   // START TEST
   // ==================
+  
   async function startTest() {
     currentStep = 0;
     collectedFrames = [];
     currentExpressionFrames = [];
-
     showScreen('test');
     buildExpressionList();
     updateStep();
@@ -1382,7 +1402,6 @@ function initFaceMesh() {
   // CAMERA INIT
   // ==================
   async function initCamera() {
-    initFaceMesh();
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
       const video = document.getElementById('camera-feed');
@@ -1510,8 +1529,14 @@ function initFaceMesh() {
   }
 
   function captureFrame() {
-    if (!latestLandmarks) return;
+    const warning = document.getElementById('no-face-warning');
 
+    if (!latestLandmarks) {
+      warning.style.display = 'block';
+      return;
+    }
+
+    warning.style.display = 'none';
     const frame = [];
     for (const lm of latestLandmarks) {
       frame.push(lm.x, lm.y, lm.z);
@@ -1547,12 +1572,17 @@ function initFaceMesh() {
     // Save this expression's frames (5 frames per expression)
     const sampled = currentExpressionFrames.slice(-FRAMES_PER_EXPRESSION);
     // Pad if needed
-    while (sampled.length < FRAMES_PER_EXPRESSION) sampled.push(null);
+    while (sampled.length < FRAMES_PER_EXPRESSION) {
+      sampled.push(new Array(1404).fill(0));
+    }
     collectedFrames.push(...sampled);
 
     // Mark done
-    document.getElementById('expr-item-' + currentStep).classList.remove('current');
-    document.getElementById('expr-item-' + currentStep).classList.add('done');
+    const currentItem = document.getElementById('expr-item-' + currentStep);
+    if (currentItem) {
+      currentItem.classList.remove('current');
+      currentItem.classList.add('done');
+    }
 
     currentStep++;
 
@@ -1579,7 +1609,7 @@ function initFaceMesh() {
       const response = await fetch('http://127.0.0.1:8000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sequence })
+        body: JSON.stringify({ sequence: sequence })
       });
 
       const result = await response.json();
@@ -1662,46 +1692,194 @@ function initFaceMesh() {
     }
   }
   function downloadPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-  const diagnosis = document.getElementById('result-title').textContent;
-  const healthyPct = document.getElementById('healthy-pct').textContent;
-  const parkinsonPct = document.getElementById('parkinson-pct').textContent;
-  const severity = document.getElementById('severity-val').textContent;
-  const date = new Date().toLocaleDateString();
+    const diagnosis = document.getElementById('result-title').textContent;
+    const healthyPct = parseFloat(document.getElementById('healthy-pct').textContent);
+    const parkinsonPct = parseFloat(document.getElementById('parkinson-pct').textContent);
+    const severity = document.getElementById('severity-val').textContent;
+    const now = new Date();
+    const date = now.toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
+    const time = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    const isParkinson = diagnosis.includes('Parkinson');
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.text('ParkinScan — Test Results', 20, 25);
+    // ── HEADER BAR ──
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, pageWidth, 28, 'F');
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.text('Date: ' + date, 20, 38);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(13, 148, 136);
+    doc.text('ParkinScan', 14, 12);
 
-  doc.setDrawColor(13, 148, 136);
-  doc.setLineWidth(0.5);
-  doc.line(20, 44, 190, 44);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('AI-Powered Parkinson Detection System', 14, 20);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.text('Diagnosis: ' + diagnosis, 20, 58);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`${date}  |  ${time}`, pageWidth - 14, 16, { align: 'right' });
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(12);
-  doc.text('Healthy Probability:     ' + healthyPct, 20, 75);
-  doc.text('Parkinson Probability:  ' + parkinsonPct, 20, 88);
-  doc.text('Severity Level:              ' + severity, 20, 101);
+    // ── RESULT BANNER ──
+    const bannerColor = isParkinson ? [255, 247, 237] : [240, 253, 244];
+    const bannerBorder = isParkinson ? [251, 191, 36] : [134, 239, 172];
+    doc.setFillColor(...bannerColor);
+    doc.setDrawColor(...bannerBorder);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(14, 36, pageWidth - 28, 22, 3, 3, 'FD');
 
-  doc.line(20, 110, 190, 110);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(isParkinson ? 194 : 21, isParkinson ? 65 : 128, isParkinson ? 12 : 61);
+    doc.text(diagnosis, 22, 50);
 
-  doc.setFontSize(9);
-  doc.setTextColor(150);
-  doc.text('This is not a medical diagnosis. ParkinScan is a research prototype.', 20, 122);
-  doc.text('Consult a qualified neurologist for any health concerns.', 20, 130);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    const subtitle = isParkinson
+      ? "Parkinson's indicators were detected. Please consult a neurologist."
+      : "No significant Parkinson's indicators detected in facial expression patterns.";
+    doc.text(subtitle, 22, 57);
 
-  doc.save('parkinscan-results.pdf');
+    // ── SECTION: PROBABILITY RESULTS ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('PROBABILITY RESULTS', 14, 72);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(14, 74, pageWidth - 14, 74);
+
+    // Healthy bar
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Healthy', 14, 84);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(34, 197, 94);
+    doc.text(healthyPct.toFixed(1) + '%', pageWidth - 14, 84, { align: 'right' });
+
+    // Healthy bar background
+    doc.setFillColor(226, 232, 240);
+    doc.roundedRect(14, 87, pageWidth - 28, 6, 2, 2, 'F');
+    // Healthy bar fill
+    doc.setFillColor(34, 197, 94);
+    const healthyBarWidth = ((pageWidth - 28) * healthyPct) / 100;
+    doc.roundedRect(14, 87, healthyBarWidth, 6, 2, 2, 'F');
+
+    // Parkinson bar
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Parkinson's", 14, 103);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(239, 68, 68);
+    doc.text(parkinsonPct.toFixed(1) + '%', pageWidth - 14, 103, { align: 'right' });
+
+    // Parkinson bar background
+    doc.setFillColor(226, 232, 240);
+    doc.roundedRect(14, 106, pageWidth - 28, 6, 2, 2, 'F');
+    // Parkinson bar fill
+    doc.setFillColor(239, 68, 68);
+    const parkinsonBarWidth = ((pageWidth - 28) * parkinsonPct) / 100;
+    doc.roundedRect(14, 106, parkinsonBarWidth, 6, 2, 2, 'F');
+
+    // ── SECTION: SEVERITY ──
+    // Only show severity details if Parkinson's detected
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('SEVERITY ASSESSMENT', 14, 124);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(14, 126, pageWidth - 14, 126);
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(14, 130, pageWidth - 28, 18, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Severity Level', 22, 138);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
+    doc.text(isParkinson ? severity : 'Not applicable for healthy results', 22, 145);
+
+    // Severity dots
+    const dotColors = {
+      'Mild':     [[34,197,94],  [226,232,240], [226,232,240]],
+      'Moderate': [[34,197,94],  [245,158,11],  [226,232,240]],
+      'Severe':   [[34,197,94],  [245,158,11],  [239,68,68]]
+    };
+    const dots = isParkinson ? (dotColors[severity] || dotColors['Mild']) : [[226,232,240],[226,232,240],[226,232,240]];
+    dots.forEach((color, i) => {
+      doc.setFillColor(...color);
+      doc.circle(pageWidth - 28 + (i * 8), 139, 3, 'F');
+    });
+
+    // ── SECTION: TEST INFO ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('TEST INFORMATION', 14, 162);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(14, 164, pageWidth - 14, 164);
+
+    const infoItems = [
+      ['Expressions Analyzed', '6 (Neutral, Happiness, Sadness, Anger, Surprise, Disgust)'],
+      ['Facial Landmarks Tracked', '468 landmarks per frame'],
+      ['Frames Collected', '30 frames (5 per expression)'],
+      ['Model Architecture', 'CNN + LSTM Neural Network'],
+      ['Training Dataset', '244 YouTube PD patient videos'],
+    ];
+
+    infoItems.forEach(([label, value], i) => {
+      const y = 172 + (i * 9);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label + ':', 14, y);
+      doc.setTextColor(15, 23, 42);
+      doc.text(value, 80, y);
+    });
+
+    // ── DISCLAIMER ──
+    doc.setFillColor(255, 247, 237);
+    doc.setDrawColor(253, 215, 170);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(14, 222, pageWidth - 28, 22, 3, 3, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(154, 52, 18);
+    doc.text('! Medical Disclaimer', 20, 230);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(154, 52, 18);
+    doc.text('This report is generated by ParkinScan, a research prototype developed as a graduation project.', 20, 236);
+    doc.text('It is NOT a certified medical diagnosis. Please consult a qualified neurologist for clinical evaluation.', 20, 241);
+
+    // ── FOOTER ──
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 275, pageWidth, 22, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('ParkinScan — Graduation Project  |  Built with MediaPipe, TensorFlow & FastAPI', pageWidth / 2, 284, { align: 'center' });
+    doc.text('Generated on ' + date + ' at ' + time, pageWidth / 2, 290, { align: 'center' });
+
+    doc.save('parkinscan-results.pdf');
   }
+  // Run once when page loads
+  initFaceMesh();
 </script>
 
 </body>

@@ -68,6 +68,7 @@ def predict(data: PredictionInput):
             "severity": round(severity, 2),
             "stage": stage
         }
+        
 
     except Exception as e:
         return {"error": str(e)}
