@@ -45,6 +45,7 @@ def predict(data: PredictionInput):
     try:
         sequence = np.array(data.sequence)
         sequence = sequence.reshape(1, 30, 1404)
+        sequence = (sequence - 0.3069034922764374) / 0.26552994273652963
         prediction = model.predict(sequence, verbose=0)
 
         healthy_prob = float(prediction[0][0]) * 100
