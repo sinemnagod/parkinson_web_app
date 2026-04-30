@@ -2,6 +2,8 @@
 
 > A graduation project that uses facial expression analysis and deep learning to provide an early indicator of Parkinson's disease.
 
+🌐 **Live App:** [https://parkinscan.netlify.app](https://parkinscan.netlify.app)
+
 ---
 
 ## What is ParkinScan?
@@ -12,13 +14,25 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 
 ---
 
+## Live Deployment
+
+| Service              | URL                                 |
+| -------------------- | ----------------------------------- |
+| Frontend (Netlify)   | https://parkinscan.netlify.app      |
+| Backend API (Render) | https://parkinscan-api.onrender.com |
+
+> **Note:** The backend runs on Render's free tier and may take up to 50 seconds to respond after a period of inactivity. Open the API URL once before a demo to wake it up.
+
+---
+
 ## How It Works
 
-1. **Camera Access** — The user allows webcam access in the browser
-2. **Facial Tracking** — MediaPipe FaceMesh tracks 468 landmarks on the user's face in real time
-3. **6 Expressions** — The user performs Neutral, Happiness, Sadness, Anger, Surprise, and Disgust (5 seconds each)
-4. **AI Analysis** — 30 frames of landmark data (5 per expression × 6 expressions) are sent to the backend
-5. **Result** — A CNN+LSTM neural network returns a diagnosis with probability scores and severity level
+1. **Consent** — The user is informed about camera usage and asked whether to share anonymized data for research
+2. **Camera Access** — The browser requests webcam access; MediaPipe FaceMesh initializes in the background
+3. **Facial Tracking** — MediaPipe FaceMesh tracks 468 landmarks on the user's face in real time, entirely in the browser
+4. **6 Expressions** — The user performs Neutral, Happiness, Sadness, Anger, Surprise, and Disgust (5 seconds each) with a 3-second get-ready countdown between each
+5. **AI Analysis** — 30 frames of landmark data (5 per expression × 6 expressions) are sent to the backend API
+6. **Result** — A CNN+LSTM neural network returns a diagnosis with probability scores and severity level, downloadable as a PDF report
 
 ---
 
@@ -28,7 +42,8 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 parkinson_web_app/
 ├── backend/
 │   ├── api.py                  # FastAPI server with prediction endpoint
-│   └── parkinson_model.h5      # Trained CNN+LSTM model
+│   ├── parkinson_model.h5      # Trained CNN+LSTM model
+│   └── requirements.txt        # Python dependencies
 └── frontend/
     └── index.html              # Complete single-page web application
 ```
@@ -37,14 +52,16 @@ parkinson_web_app/
 
 ## Tech Stack
 
-| Layer          | Technology                         |
-| -------------- | ---------------------------------- |
-| Frontend       | HTML, CSS, JavaScript              |
-| Face Tracking  | MediaPipe FaceMesh (browser-based) |
-| Backend        | FastAPI (Python)                   |
-| AI Model       | TensorFlow / Keras — CNN + LSTM    |
-| PDF Generation | jsPDF                              |
-| Server         | Uvicorn                            |
+| Layer            | Technology                                            |
+| ---------------- | ----------------------------------------------------- |
+| Frontend         | HTML, CSS, JavaScript (single-page app)               |
+| Face Tracking    | MediaPipe FaceMesh (browser-based, JS CDN)            |
+| PDF Generation   | jsPDF (browser-based, JS CDN)                         |
+| Backend          | FastAPI (Python)                                      |
+| AI Model         | TensorFlow 2.21.0 / Keras — CNN + LSTM                |
+| Server           | Uvicorn (ASGI)                                        |
+| Frontend Hosting | Netlify (auto-deploys from GitHub)                    |
+| Backend Hosting  | Render (Python web service, auto-deploys from GitHub) |
 
 ---
 
@@ -76,7 +93,7 @@ Input: (30 frames, 1404 features)  ← 468 landmarks × x,y,z per frame
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11
 - pip
 
 ### Step 1 — Clone the repository
@@ -90,11 +107,10 @@ cd parkinson_web_app
 
 ```bash
 cd backend
-pip install fastapi uvicorn numpy opencv-python
-pip install tensorflow-macos  # macOS (Apple Silicon)
-# OR
-pip install tensorflow        # Windows / Linux / Intel Mac
+pip install -r requirements.txt
 ```
+
+> **macOS (Apple Silicon):** If `tensorflow` fails to install, replace it in `requirements.txt` with `tensorflow-macos` and run again.
 
 ### Step 3 — Start the backend server
 
@@ -111,9 +127,9 @@ INFO: Application startup complete.
 
 ### Step 4 — Open the frontend
 
-Open `frontend/index.html` in your browser using a local server such as VS Code Live Server, or navigate to it directly.
+Open `frontend/index.html` using VS Code Live Server, or any local HTTP server.
 
-> **Note:** The frontend must be served over HTTP (not opened as a file) for camera access to work properly in Chrome.
+> **Note:** The frontend must be served over HTTP (not opened as a raw file) for camera access to work in Chrome.
 
 ---
 
@@ -145,39 +161,40 @@ Shape: `(30, 1404)` — 30 frames, 468 landmarks × 3 (x, y, z)
 }
 ```
 
+The backend applies z-score normalization (mean=0.307, std=0.266) before inference, matching the training pipeline.
+
+---
+
+## Features
+
+- **Real-time face tracking** — MediaPipe runs entirely in the browser; no video is sent to the server
+- **Guided expression protocol** — 6 expressions with countdown timers, get-ready overlays, and a face-positioning guide
+- **Face detection warning** — Real-time alert if no face is detected during recording
+- **Record Again** — Users can redo any individual expression without restarting the test
+- **PDF report** — Downloadable report with diagnosis, probabilities, severity, and medical disclaimer
+- **Privacy-first** — Only numerical landmark coordinates are transmitted; no video data leaves the device
+
 ---
 
 ## Known Limitations
 
 ### Class Imbalance
 
-The training dataset is imbalanced — 77% healthy vs 23% Parkinson's subjects. Class balancing was not applied during training, which means the model has a bias toward predicting "Healthy." This is a known limitation and a direction for future improvement.
+The training dataset is imbalanced — 77% healthy vs 23% Parkinson's subjects. Class balancing was not applied during training, which introduces a bias toward predicting "Healthy."
 
-**Planned fix:** Retrain the model with `class_weight` parameter using scikit-learn's `compute_class_weight`.
+**Planned fix:** Retrain the model with `class_weight` using scikit-learn's `compute_class_weight`.
 
 ### Lighting Sensitivity
 
-MediaPipe facial landmark detection degrades significantly in poor lighting. Users should perform the test in a well-lit environment facing a light source.
+MediaPipe landmark detection degrades in poor lighting. Users should perform the test in a well-lit environment.
 
 ### Camera Quality
 
-Lower resolution webcams may produce less accurate landmark coordinates, affecting model predictions.
+Lower resolution webcams may produce less accurate landmark coordinates, affecting predictions.
 
 ### Not a Medical Device
 
 ParkinScan is a research prototype developed as a graduation project. It is **not** a certified medical device and should not be used as a substitute for professional neurological diagnosis.
-
----
-
-## Results Screen
-
-The results page displays:
-
-- **Diagnosis** — Healthy or Parkinson's Detected
-- **Healthy Probability** — percentage with animated bar
-- **Parkinson's Probability** — percentage with animated bar
-- **Severity Level** — Mild / Moderate / Severe (if Parkinson's detected)
-- **Save Results** — downloads a professionally formatted PDF report
 
 ---
 
@@ -193,22 +210,24 @@ The results page displays:
 
 ## Academic Context
 
-This project was developed as a graduation project for the Software Engineering program. It demonstrates:
+This project was developed as a graduation project for the Software Engineering program at Istanbul Aydin University. It demonstrates:
 
 - End-to-end AI application development
 - Real-time computer vision in the browser
 - REST API design and integration
 - Deep learning model deployment
 - Full-stack web development
+- Cloud deployment (Netlify + Render)
 
 ---
 
 ## References
 
 - **YouTubePD Dataset** — Used for model training
-- **MediaPipe FaceMesh** — Google's facial landmark detection library
+- **MediaPipe FaceMesh** — Google's real-time facial landmark detection library
 - **FastAPI** — Modern Python web framework
-- **TensorFlow/Keras** — Deep learning framework
+- **TensorFlow / Keras** — Deep learning framework
+- **jsPDF** — Client-side PDF generation library
 
 ---
 
