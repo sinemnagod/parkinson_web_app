@@ -42,7 +42,7 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 parkinson_web_app/
 ├── backend/
 │   ├── api.py                  # FastAPI server with prediction endpoint
-│   ├── parkinson_model.h5      # Trained CNN+LSTM model
+│   ├── parkinson_model_balanced.h5      # Trained CNN+LSTM model
 │   └── requirements.txt        # Python dependencies
 └── frontend/
     └── index.html              # Complete single-page web application
