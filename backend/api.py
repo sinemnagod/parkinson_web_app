@@ -17,7 +17,7 @@ class CompatibleLSTM(LSTM):
 # LOAD MODEL
 # =========================
 model = tf.keras.models.load_model(
-    "parkinson_model.h5",
+    "parkinson_model_balanced.h5",
     custom_objects={'LSTM': CompatibleLSTM},
     compile=False
 )
