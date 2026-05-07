@@ -182,7 +182,7 @@ The backend applies z-score normalization (mean=0.307, std=0.266) before inferen
 
 The training dataset is imbalanced — 77% healthy vs 23% Parkinson's subjects. Class balancing was not applied during training, which introduces a bias toward predicting "Healthy."
 
-**Planned fix:** Retrain the model with `class_weight` using scikit-learn's `compute_class_weight`.
+**Update:** The model was retrained with class balancing applied (`parkinson_model_balanced.h5`). Results show improved sensitivity, though further clinical validation is needed to confirm reliability across diverse subjects.
 
 ### Lighting Sensitivity
 
