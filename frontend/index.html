@@ -914,6 +914,111 @@
 </div>
 
 <!-- ================================
+     SCREEN 4 — REGISTER
+================================ -->
+<div class="screen" id="screen-register">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer;">Parkin<span>Scan</span></div>
+  </nav>
+
+  <div style="max-width:520px; margin:3rem auto; padding:0 2rem;">
+
+    <h2 style="font-family:'DM Serif Display',serif; font-size:2rem; letter-spacing:-0.03em; margin-bottom:0.5rem;">Create an account</h2>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">Save your test results and track changes over time.</p>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:2rem;">
+      Already have an account?
+      <span onclick="showScreen('login')" style="color:var(--teal); cursor:pointer; font-weight:500; margin-left:0.3rem;">Login</span>
+    </p>
+
+    <!-- Privacy Note -->
+    <div style="background:var(--teal-light); border:1px solid #99f6e4; border-radius:12px; padding:1rem 1.2rem; margin-bottom:1.5rem; display:flex; gap:0.75rem; align-items:flex-start;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" style="flex-shrink:0; margin-top:2px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <p style="font-size:0.82rem; color:#0f766e; line-height:1.5;">ParkinScan does not record or store any video or biometric imagery. Only your test results — including diagnosis, probability scores, and severity level — are securely stored and associated with your account solely for the purpose of allowing you to access your personal test history.</p>
+    </div>
+
+    <!-- Form -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Name</label>
+        <input id="reg-name" type="text" placeholder="Your name" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+      </div>
+      <div>
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Surname</label>
+        <input id="reg-surname" type="text" placeholder="Your surname" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Email</label>
+      <input id="reg-email" type="email" placeholder="your@email.com" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+    </div>
+
+    <div style="margin-bottom:1.5rem;">
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Password</label>
+      <input id="reg-password" type="password" placeholder="Min. 6 characters" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+    </div>
+
+    <!-- KVKK -->
+    <div style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:1.2rem; margin-bottom:1.5rem;">
+      <p style="font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:0.6rem;">KVKK — Personal Data Protection</p>
+      <div style="max-height:120px; overflow-y:auto; margin-bottom:1rem;">
+        <p style="font-size:0.8rem; color:var(--muted); line-height:1.6;">In accordance with the Turkish Personal Data Protection Law No. 6698 (KVKK), your personal data (name, surname, and email address) and test results will be stored securely and used solely for providing access to your test history. Your data will not be shared with third parties, used for commercial purposes, or processed beyond the scope of this service. You have the right to access, correct, or request deletion of your data at any time by contacting us. By creating an account, you explicitly consent to the processing of your personal data under these terms.</p>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:0.6rem;">
+        <input type="checkbox" id="kvkk-check" style="margin-top:3px; accent-color:#0d9488; width:16px; height:16px; flex-shrink:0; cursor:pointer;">
+        <label for="kvkk-check" style="font-size:0.82rem; color:var(--text); line-height:1.5; cursor:pointer;">I have read and agree to the processing of my personal data in accordance with KVKK.</label>
+      </div>
+    </div>
+
+    <!-- Error message -->
+    <p id="reg-error" style="color:var(--red); font-size:0.85rem; margin-bottom:1rem; display:none;"></p>
+
+    <!-- Register button -->
+    <button onclick="register()" class="btn-primary" style="width:100%; justify-content:center; padding:0.9rem; font-size:0.95rem;">
+      Create Account
+    </button>
+
+  </div>
+</div>
+
+<!-- ================================
+     SCREEN 5 — LOGIN
+================================ -->
+<div class="screen" id="screen-login">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer;">Parkin<span>Scan</span></div>
+  </nav>
+
+  <div style="max-width:520px; margin:3rem auto; padding:0 2rem;">
+
+    <h2 style="font-family:'DM Serif Display',serif; font-size:2rem; letter-spacing:-0.03em; margin-bottom:0.5rem;">Welcome back</h2>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">Log in to access your test history.</p>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:2rem;">
+      Don't have an account?
+      <span onclick="showScreen('register')" style="color:var(--teal); cursor:pointer; font-weight:500; margin-left:0.3rem;">Register</span>
+    </p>
+
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Email</label>
+      <input id="login-email" type="email" placeholder="your@email.com" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+    </div>
+
+    <div style="margin-bottom:1.5rem;">
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text); display:block; margin-bottom:0.4rem;">Password</label>
+      <input id="login-password" type="password" placeholder="Your password" style="width:100%; padding:0.75rem 1rem; border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'"/>
+    </div>
+
+    <!-- Error message -->
+    <p id="login-error" style="color:var(--red); font-size:0.85rem; margin-bottom:1rem; display:none;"></p>
+
+    <button onclick="login()" class="btn-primary" style="width:100%; justify-content:center; padding:0.9rem; font-size:0.95rem;">
+      Login
+    </button>
+
+  </div>
+</div>
+
+<!-- ================================
      SCREEN 1 — HOME
 ================================ -->
 <div class="screen active" id="screen-home">
@@ -922,6 +1027,16 @@
     <div style="display:flex; align-items:center; gap:2rem;">
       <a onclick="document.getElementById('about-section').scrollIntoView({behavior:'smooth'})" style="font-size:0.88rem; color:var(--muted); cursor:pointer; text-decoration:none; font-weight:500; transition:color 0.2s;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">What is Parkinson's?</a>
       <a onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})" style="font-size:0.88rem; color:var(--muted); cursor:pointer; text-decoration:none; font-weight:500; transition:color 0.2s;" onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--muted)'">How It Works</a>
+      <div id="nav-logged-out" style="display:flex; align-items:center; gap:1rem;">
+        <button onclick="showScreen('login')" style="font-size:0.88rem; color:var(--muted); background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500;">Login</button>
+        <button class="btn-primary" onclick="showScreen('register')" style="padding:0.6rem 1.4rem; font-size:0.85rem;">Register</button>
+      </div>
+      <div id="nav-logged-in" style="display:none; align-items:center; gap:1rem;">
+        <span id="nav-username" style="font-size:0.88rem; color:var(--muted); font-weight:500;"></span>
+        <button onclick="showHistory()" style="font-size:0.88rem; color:var(--teal); background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500;">History</button>
+        <button onclick="logout()" style="font-size:0.88rem; color:var(--muted); background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500;">Logout</button>
+        <button class="btn-primary" onclick="startTest()" style="padding:0.6rem 1.4rem; font-size:0.85rem;">Start Test →</button>
+      </div>
     </div>
   </nav>
 
