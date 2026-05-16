@@ -3,3 +3,9 @@ uvicorn
 numpy==1.26.4
 opencv-python-headless
 tensorflow==2.21.0
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+sqlalchemy
+bcrypt==4.0.1
