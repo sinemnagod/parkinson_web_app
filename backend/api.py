@@ -63,6 +63,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 def get_db():
     import os
     database_url = os.environ.get("DATABASE_URL")
+    print("DATABASE_URL found:", bool(database_url))
     if database_url:
         conn = psycopg2.connect(database_url)
     else:
