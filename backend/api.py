@@ -61,12 +61,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 # DATABASE CONNECTION
 # =========================
 def get_db():
-    conn = psycopg2.connect(
-        host="localhost",
-        port=5432,
-        database="parkinscan",
-        user="sinemdogan"
-    )
+    import os
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        conn = psycopg2.connect(database_url)
+    else:
+        conn = psycopg2.connect(
+            host="localhost",
+            port=5432,
+            database="parkinscan",
+            user="sinemdogan"
+        )
     return conn
 
 # =========================
