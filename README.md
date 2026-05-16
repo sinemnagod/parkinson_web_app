@@ -16,10 +16,11 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 
 ## Live Deployment
 
-| Service              | URL                                 |
-| -------------------- | ----------------------------------- |
-| Frontend (Netlify)   | https://parkinscan.netlify.app      |
-| Backend API (Render) | https://parkinscan-api.onrender.com |
+| Service              | URL                                         |
+| -------------------- | ------------------------------------------- |
+| Frontend (Netlify)   | https://parkinscan.netlify.app              |
+| Backend API (Render) | https://parkinscan-api.onrender.com         |
+| Database (Supabase)  | Hosted PostgreSQL — not publicly accessible |
 
 > **Note:** The backend runs on Render's free tier and may take up to 50 seconds to respond after a period of inactivity. Open the API URL once before a demo to wake it up.
 
@@ -27,12 +28,14 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 
 ## How It Works
 
-1. **Consent** — The user is informed about camera usage and asked whether to share anonymized data for research
-2. **Camera Access** — The browser requests webcam access; MediaPipe FaceMesh initializes in the background
-3. **Facial Tracking** — MediaPipe FaceMesh tracks 468 landmarks on the user's face in real time, entirely in the browser
-4. **6 Expressions** — The user performs Neutral, Happiness, Sadness, Anger, Surprise, and Disgust (5 seconds each) with a 3-second get-ready countdown between each
-5. **AI Analysis** — 30 frames of landmark data (5 per expression × 6 expressions) are sent to the backend API
-6. **Result** — A CNN+LSTM neural network returns a diagnosis with probability scores and severity level, downloadable as a PDF report
+1. **Account** — Users create an account or log in to save their results
+2. **Consent** — The user is informed about camera usage and KVKK data protection terms
+3. **Camera Access** — The browser requests webcam access; MediaPipe FaceMesh initializes in the background
+4. **Facial Tracking** — MediaPipe FaceMesh tracks 468 landmarks on the user's face in real time, entirely in the browser
+5. **6 Expressions** — The user performs Neutral, Happiness, Sadness, Anger, Surprise, and Disgust (5 seconds each) with a 3-second get-ready countdown between each
+6. **AI Analysis** — 30 frames of landmark data (5 per expression × 6 expressions) are sent to the backend API
+7. **Result** — A CNN+LSTM neural network returns a diagnosis with probability scores and severity level, downloadable as a PDF report
+8. **History** — Results are saved to the user's account and accessible any time from the History page
 
 ---
 
@@ -41,11 +44,11 @@ The entire test takes under 2 minutes and runs directly in the browser — no in
 ```
 parkinson_web_app/
 ├── backend/
-│   ├── api.py                  # FastAPI server with prediction endpoint
-│   ├── parkinson_model_balanced.h5      # Trained CNN+LSTM model
-│   └── requirements.txt        # Python dependencies
+│   ├── api.py                       # FastAPI server with prediction endpoint
+│   ├── parkinson_model_balanced.h5  # Trained CNN+LSTM model (class-balanced)
+│   └── requirements.txt             # Python dependencies
 └── frontend/
-    └── index.html              # Complete single-page web application
+    └── index.html                   # Complete single-page web application
 ```
 
 ---
@@ -57,6 +60,8 @@ parkinson_web_app/
 | Frontend         | HTML, CSS, JavaScript (single-page app)               |
 | Face Tracking    | MediaPipe FaceMesh (browser-based, JS CDN)            |
 | PDF Generation   | jsPDF (browser-based, JS CDN)                         |
+| Authentication   | Supabase Auth (email/password)                        |
+| Database         | Supabase PostgreSQL (results history)                 |
 | Backend          | FastAPI (Python)                                      |
 | AI Model         | TensorFlow 2.21.0 / Keras — CNN + LSTM                |
 | Server           | Uvicorn (ASGI)                                        |
@@ -86,6 +91,7 @@ Input: (30 frames, 1404 features)  ← 468 landmarks × x,y,z per frame
 - Optimizer: Adam
 - Loss: Categorical crossentropy
 - Early stopping: patience=5
+- Class balancing applied in final model (`parkinson_model_balanced.h5`)
 
 ---
 
@@ -167,12 +173,36 @@ The backend applies z-score normalization (mean=0.307, std=0.266) before inferen
 
 ## Features
 
+- **User accounts** — Register and log in to save results and access history
+- **KVKK compliance** — Users must agree to data protection terms before registering
 - **Real-time face tracking** — MediaPipe runs entirely in the browser; no video is sent to the server
 - **Guided expression protocol** — 6 expressions with countdown timers, get-ready overlays, and a face-positioning guide
 - **Face detection warning** — Real-time alert if no face is detected during recording
 - **Record Again** — Users can redo any individual expression without restarting the test
+- **Results history** — All past test results saved and accessible from the History page
 - **PDF report** — Downloadable report with diagnosis, probabilities, severity, and medical disclaimer
 - **Privacy-first** — Only numerical landmark coordinates are transmitted; no video data leaves the device
+
+---
+
+## Database Schema
+
+Results are stored in Supabase PostgreSQL:
+
+```sql
+CREATE TABLE results (
+    id SERIAL PRIMARY KEY,
+    user_email VARCHAR(255) NOT NULL,
+    diagnosis VARCHAR(50) NOT NULL,
+    healthy_probability FLOAT NOT NULL,
+    parkinson_probability FLOAT NOT NULL,
+    severity FLOAT NOT NULL,
+    stage VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+User authentication is handled by Supabase Auth — no passwords are stored in the application database.
 
 ---
 
@@ -180,9 +210,7 @@ The backend applies z-score normalization (mean=0.307, std=0.266) before inferen
 
 ### Class Imbalance
 
-The training dataset is imbalanced — 77% healthy vs 23% Parkinson's subjects. Class balancing was not applied during training, which introduces a bias toward predicting "Healthy."
-
-**Update:** The model was retrained with class balancing applied (`parkinson_model_balanced.h5`). Results show improved sensitivity, though further clinical validation is needed to confirm reliability across diverse subjects.
+The training dataset is imbalanced — 77% healthy vs 23% Parkinson's subjects. The model was retrained with class balancing applied (`parkinson_model_balanced.h5`). Results show improved sensitivity, though further clinical validation is needed to confirm reliability across diverse subjects.
 
 ### Lighting Sensitivity
 
@@ -192,6 +220,10 @@ MediaPipe landmark detection degrades in poor lighting. Users should perform the
 
 Lower resolution webcams may produce less accurate landmark coordinates, affecting predictions.
 
+### Free Tier Limitations
+
+The backend runs on Render's free tier (512MB RAM). Due to memory constraints, the prediction API and database auth are handled separately — prediction runs on Render, while auth and history are handled directly via Supabase from the frontend.
+
 ### Not a Medical Device
 
 ParkinScan is a research prototype developed as a graduation project. It is **not** a certified medical device and should not be used as a substitute for professional neurological diagnosis.
@@ -200,11 +232,12 @@ ParkinScan is a research prototype developed as a graduation project. It is **no
 
 ## Team
 
-| Name           | Role                              |
-| -------------- | --------------------------------- |
-| Sinem Doğan    | Frontend Development & Deployment |
-| Teammate 2     | Data Preprocessing & Pipeline     |
-| Teammate 3 & 4 | Model Architecture & Training     |
+| Name        | Role                              |
+| ----------- | --------------------------------- |
+| Sinem Doğan | Frontend Development & Deployment |
+| Teammate 1  | Data Preprocessing & Pipeline     |
+| Teammate 2  | Model Architecture & Training     |
+| Teammate 3  | Model Architecture & Training     |
 
 ---
 
@@ -217,7 +250,9 @@ This project was developed as a graduation project for the Software Engineering 
 - REST API design and integration
 - Deep learning model deployment
 - Full-stack web development
-- Cloud deployment (Netlify + Render)
+- Cloud deployment (Netlify + Render + Supabase)
+- User authentication and data persistence
+- KVKK data protection compliance
 
 ---
 
@@ -227,6 +262,7 @@ This project was developed as a graduation project for the Software Engineering 
 - **MediaPipe FaceMesh** — Google's real-time facial landmark detection library
 - **FastAPI** — Modern Python web framework
 - **TensorFlow / Keras** — Deep learning framework
+- **Supabase** — Open-source Firebase alternative for auth and database
 - **jsPDF** — Client-side PDF generation library
 
 ---
