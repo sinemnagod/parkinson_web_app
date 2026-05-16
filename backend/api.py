@@ -23,11 +23,17 @@ class CompatibleLSTM(LSTM):
 # =========================
 # LOAD MODEL
 # =========================
-model = tf.keras.models.load_model(
-    "parkinson_model_balanced.h5",
-    custom_objects={'LSTM': CompatibleLSTM},
-    compile=False
-)
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = tf.keras.models.load_model(
+            "parkinson_model_balanced.h5",
+            custom_objects={'LSTM': CompatibleLSTM},
+            compile=False
+        )
+    return model
 
 app = FastAPI(title="Parkinson Detection API")
 
@@ -197,7 +203,7 @@ def predict(data: PredictionInput, current_user: str = Depends(get_current_user)
         sequence = sequence.reshape(1, 30, 1404)
         sequence = (sequence - MEAN) / STD
 
-        prediction = model.predict(sequence, verbose=0)
+        prediction = get_model().predict(sequence, verbose=0)
 
         healthy_prob   = float(prediction[0][0]) * 100
         parkinson_prob = float(prediction[0][1]) * 100
