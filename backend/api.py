@@ -65,7 +65,7 @@ def get_db():
     database_url = os.environ.get("DATABASE_URL")
     print("DATABASE_URL found:", bool(database_url))
     if database_url:
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(database_url, sslmode='require')
     else:
         conn = psycopg2.connect(
             host="localhost",
